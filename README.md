@@ -4,6 +4,8 @@ A lightweight, 100% local desktop web app to save public social videos as standa
 
 No ads, no pop-ups, no third-party servers, and no resolution caps.
 
+![Video to MP4 Interface](preview.png)
+
 ---
 
 ## Why Video to MP4 is Better Than Online Downloader Websites
