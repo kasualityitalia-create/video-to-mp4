@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video to MP4</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237c3aed'/%3E%3Cstop offset='55%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%230284c7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M12 8.8L22 14.8L12 20.8Z' fill='%23fff' stroke='%23fff' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M9.5 24.2H22.5' stroke='%2367e8f9' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: #ffffff;
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #1e1b4b;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6d28d9, #4f46e5);
+      color: #fff;
+      display: grid;
+      place-items: center;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #475569;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    nav a:hover {
+      color: #6d28d9;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #6d28d9 100%);
+      color: #ffffff;
+      text-align: center;
+      padding: 28px 20px 68px;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.75rem, 3.4vw, 2.55rem);
+      font-weight: 800;
+      line-height: 1.12;
+      max-width: 720px;
+      margin: 0 auto 10px;
+    }
+
+    .hero p {
+      font-size: 0.98rem;
+      opacity: 0.92;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.45;
+    }
+
+    .tool-box {
+      max-width: 740px;
+      width: calc(100% - 32px);
+      margin: -46px auto 0;
+      background: linear-gradient(135deg, #7c3aed 0%, #2563eb 55%, #0284c7 100%);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 32px -10px rgba(15, 23, 42, 0.22);
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 16px 18px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      background: #ffffff;
+      color: #0f172a;
+    }
+
+    input[type="url"]:focus {
+      border-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+    }
+
+    button {
+      align-self: center;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+      background: #0f766e;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+    }
+
+    button:hover:not(:disabled) {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 0.92rem;
+      min-height: 20px;
+      color: #f8fafc;
+      font-weight: 500;
+    }
+
+    .status:empty {
+      display: none;
+    }
+
+    .status.error {
+      background: #b91c1c;
+      padding: 8px 14px;
+      border-radius: 8px;
+      color: #ffffff;
+    }
+
+    .status.ok {
+      background: #047857;
+      padding: 8px 14px;
+      border-radius: 8px;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .how {
+      width: 100%;
+      max-width: 960px;
+      margin: 24px auto 12px;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    .how h2 {
+      font-size: 1.3rem;
+      margin-bottom: 18px;
+      color: #0f172a;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 720px) {
+      .steps {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-card {
+      padding: 8px 10px;
+    }
+
+    .step-icon {
+      width: 46px;
+      height: 46px;
+      margin: 0 auto 10px;
+      border-radius: 12px;
+      background: #ede9fe;
+      color: #6d28d9;
+      display: grid;
+      place-items: center;
+    }
+
+    .step-card h3 {
+      font-size: 1.02rem;
+      margin-bottom: 5px;
+      color: #0f172a;
+    }
+
+    .step-card p {
+      font-size: 0.88rem;
+      color: #475569;
+      line-height: 1.42;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 14px 20px 18px;
+      text-align: center;
+      color: #475569;
+      font-size: 0.85rem;
+    }
+
+    .platforms {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+
+    .platform-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    }
+
+    .support-note {
+      max-width: 640px;
+      margin: 14px auto 0;
+      font-size: 0.82rem;
+      color: #475569;
+    }
+
+    a:focus-visible, button:focus-visible, input:focus-visible {
+      outline: 2px solid #4f46e5;
+      outline-offset: 2px;
+    }
+
+    .how-highlight .step-card {
+      border-color: #6d28d9;
+      box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.22), 0 10px 24px rgba(109, 40, 217, 0.12);
+      transform: translateY(-2px);
+      transition: all 0.25s ease;
+    }
+
+    .step-card {
+      transition: all 0.25s ease;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      color: #0f172a;
+      max-width: 460px;
+      width: 100%;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+      border: 1px solid #e2e8f0;
+      position: relative;
+      text-align: left;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      font-size: 1.4rem;
+      line-height: 1;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    .modal-card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      color: #1e1b4b;
+    }
+
+    .modal-card p {
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #475569;
+      margin-bottom: 10px;
+    }
+
+    .modal-card a {
+      color: #4f46e5;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .modal-card a:hover {
+      text-decoration: underline;
+    }
+
+    .modal-actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      background: #4f46e5;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="brand" href="#">
+      <span class="brand-icon" style="background: transparent;">
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#7c3aed"/>
+              <stop offset="55%" stop-color="#4f46e5"/>
+              <stop offset="100%" stop-color="#0284c7"/>
+            </linearGradient>
+          </defs>
+          <rect width="32" height="32" rx="8" fill="url(#brandGrad)"/>
+          <path d="M12 8.8L22 14.8L12 20.8Z" fill="#ffffff" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M9.5 24.2H22.5" stroke="#67e8f9" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+      </span>
+      Video to MP4
+    </a>
+    <a id="nav-how" href="#come-funziona" data-i18n="navHow">Come funziona</a>
+    <a id="nav-support" href="#supporto" data-i18n="navSupport">Supporto</a>
+    <a class="kasuality-brand-link" href="https://www.kasuality.com/" target="_blank" rel="noopener noreferrer" style="margin-left: auto; color: #4f46e5; font-weight: 600; font-size: 0.9rem;">by Kasuality</a>
+  </nav>
+
+  <section class="hero">
+    <h1 data-i18n="heroTitle">Trasforma qualsiasi video social in MP4</h1>
+    <p data-i18n="heroSubtitle">Scarica i tuoi video preferiti da Instagram, TikTok, YouTube e altre piattaforme in pochi secondi, gratis e senza pubblicit&agrave;.</p>
+  </section>
+
+  <main class="tool-box">
+    <form id="download-form" class="input-row">
+      <input
+        id="video-url"
+        type="url"
+        placeholder="Incolla qui il link del video (es. Instagram, TikTok, YouTube)..."
+        required
+        autocomplete="off"
+      />
+      <button id="download-btn" type="submit" data-i18n="btnDownload">Scarica MP4</button>
+    </form>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </main>
+
+  <section id="come-funziona" class="how">
+    <h2 data-i18n="howTitle">Come funziona:</h2>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </div>
+        <h3 data-i18n="step1Title">Copia il link</h3>
+        <p data-i18n="step1Desc">Trova il video che vuoi scaricare su Instagram o altri social e copia l'indirizzo (URL).</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="7" width="20" height="10" rx="3"></rect>
+            <line x1="7" y1="10" x2="7" y2="14"></line>
+          </svg>
+        </div>
+        <h3 data-i18n="step2Title">Incolla qui</h3>
+        <p data-i18n="step2Desc">Inserisci il link nella barra qui sopra e premi il pulsante.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <polyline points="9 15 12 18 15 15"></polyline>
+          </svg>
+        </div>
+        <h3 data-i18n="step3Title">Scarica</h3>
+        <p data-i18n="step3Desc">Il video verr&agrave; salvato direttamente nella tua cartella Download come file .mp4, pronto da usare o condividere.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer id="supporto">
+    <div id="platforms-row" class="platforms" aria-label="Piattaforme supportate">
+      <!-- Instagram -->
+      <span class="platform-badge" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff;" title="Instagram">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+      </span>
+      <!-- TikTok -->
+      <span class="platform-badge" style="background: #0f172a; color: #fff;" title="TikTok">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
+        </svg>
+      </span>
+      <!-- YouTube -->
+      <span class="platform-badge" style="background: #b91c1c; color: #fff;" title="YouTube">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/>
+        </svg>
+      </span>
+      <!-- X -->
+      <span class="platform-badge" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1;" title="X (Twitter)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </span>
+    </div>
+    <p data-i18n="footerPrivacy">Nessun dato salvato, 100% sicuro e privato</p>
+    <p class="support-note" data-i18n="footerEngine">Motore locale attivo su questo PC (yt-dlp + FFmpeg) con aggiornamento automatico in caso di modifiche dei social.</p>
+    <p style="margin-top: 8px; font-size: 0.8rem; color: #475569;">
+      <a id="kasuality-brand-link" class="kasuality-brand-link" href="https://www.kasuality.com/" target="_blank" rel="noopener noreferrer" style="color: #4f46e5; text-decoration: none; font-weight: 600;">by Kasuality</a>
+    </p>
+  </footer>
+
+  <div id="support-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="support-modal-title">
+    <div class="modal-card">
+      <button id="support-modal-x" class="modal-close" type="button" aria-label="Chiudi">&times;</button>
+      <h2 id="support-modal-title" data-i18n="modalTitle">Supporto e Informazioni</h2>
+      <p data-i18n="modalP1">Elaborazione 100% locale sul tuo PC (yt-dlp e FFmpeg): nessun link o video passa da server esterni.</p>
+      <p data-i18n="modalP2">Se una piattaforma cambia formato, il motore locale si aggiorna automaticamente.</p>
+      <p><span data-i18n="modalContactLabel">Per assistenza o segnalazioni scrivi a</span> <a href="mailto:info@kasuality.com">info@kasuality.com</a> &bull; <a class="kasuality-brand-link" href="https://www.kasuality.com/" target="_blank" rel="noopener noreferrer">kasuality.com</a></p>
+      <div class="modal-actions">
+        <button id="support-modal-close" class="modal-btn" type="button" data-i18n="modalClose">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const I18N = {
+      it: {
+        navHow: "Come funziona",
+        navSupport: "Supporto",
+        heroTitle: "Trasforma qualsiasi video social in MP4",
+        heroSubtitle: "Scarica i tuoi video preferiti da Instagram, TikTok, YouTube e altre piattaforme in pochi secondi, gratis e senza pubblicità.",
+        placeholder: "Incolla qui il link del video (es. Instagram, TikTok, YouTube)...",
+        btnDownload: "Scarica MP4",
+        btnDownloading: "Scaricamento in corso...",
+        howTitle: "Come funziona:",
+        step1Title: "Copia il link",
+        step1Desc: "Trova il video che vuoi scaricare su Instagram o altri social e copia l'indirizzo (URL).",
+        step2Title: "Incolla qui",
+        step2Desc: "Inserisci il link nella barra qui sopra e premi il pulsante.",
+        step3Title: "Scarica",
+        step3Desc: "Il video verrà salvato direttamente nella tua cartella Download come file .mp4, pronto da usare o condividere.",
+        platformsAria: "Piattaforme supportate",
+        footerPrivacy: "Nessun dato salvato, 100% sicuro e privato",
+        footerEngine: "Motore locale attivo su questo PC (yt-dlp e FFmpeg) con aggiornamento automatico in caso di modifiche dei social.",
+        modalTitle: "Supporto e Informazioni",
+        modalP1: "Elaborazione 100% locale sul tuo PC (yt-dlp e FFmpeg): nessun link o video passa da server esterni.",
+        modalP2: "Se una piattaforma cambia formato, il motore locale si aggiorna automaticamente.",
+        modalContactLabel: "Per assistenza o segnalazioni scrivi a",
+        modalClose: "Chiudi",
+        errInvalid: "Inserisci un link valido.",
+        msgDownloading: "Download ed elaborazione MP4 in corso, attendi qualche secondo...",
+        errDownload: "Errore durante il download del video.",
+        msgDone: "Fatto! Il file MP4 è stato salvato nella tua cartella Download.",
+        errConn: "Connessione al motore locale non riuscita. Assicurati che avvia.bat sia aperto."
+      },
+      en: {
+        navHow: "How it works",
+        navSupport: "Support",
+        heroTitle: "Turn any social video into MP4",
+        heroSubtitle: "Download your favorite videos from Instagram, TikTok, YouTube and other platforms in seconds, free and ad-free.",
+        placeholder: "Paste the video link here (e.g. Instagram, TikTok, YouTube)...",
+        btnDownload: "Download MP4",
+        btnDownloading: "Downloading...",
+        howTitle: "How it works:",
+        step1Title: "Copy the link",
+        step1Desc: "Find the video you want to save on Instagram or other platforms and copy its URL.",
+        step2Title: "Paste here",
+        step2Desc: "Paste the link into the bar above and press the button.",
+        step3Title: "Download",
+        step3Desc: "The video is saved directly into your Downloads folder as an .mp4 file, ready to use or share.",
+        platformsAria: "Supported platforms",
+        footerPrivacy: "No data stored, 100% safe and private",
+        footerEngine: "Local engine running on this PC (yt-dlp and FFmpeg) with automatic updates when platforms change.",
+        modalTitle: "Support and Information",
+        modalP1: "100% local processing on your PC (yt-dlp and FFmpeg): no link or video ever leaves your device.",
+        modalP2: "If a social platform changes format, the local engine updates automatically.",
+        modalContactLabel: "For help or bug reports, email",
+        modalClose: "Close",
+        errInvalid: "Please enter a valid link.",
+        msgDownloading: "Downloading and converting to MP4, please wait a few seconds...",
+        errDownload: "Error while downloading the video.",
+        msgDone: "Done! The MP4 file has been saved to your Downloads folder.",
+        errConn: "Could not reach the local engine. Make sure avvia.bat is running."
+      },
+      fr: {
+        navHow: "Comment ça marche",
+        navSupport: "Support",
+        heroTitle: "Transformez toute vidéo sociale en MP4",
+        heroSubtitle: "Téléchargez vos vidéos depuis Instagram, TikTok, YouTube et d'autres plateformes en quelques secondes, gratuitement et sans publicité.",
+        placeholder: "Collez ici le lien de la vidéo (ex. Instagram, TikTok, YouTube)...",
+        btnDownload: "Télécharger MP4",
+        btnDownloading: "Téléchargement...",
+        howTitle: "Comment ça marche :",
+        step1Title: "Copiez le lien",
+        step1Desc: "Trouvez la vidéo sur Instagram ou un autre réseau social et copiez son adresse (URL).",
+        step2Title: "Collez ici",
+        step2Desc: "Collez le lien dans la barre ci-dessus et cliquez sur le bouton.",
+        step3Title: "Téléchargez",
+        step3Desc: "La vidéo est enregistrée directement dans votre dossier Téléchargements au format .mp4.",
+        platformsAria: "Plateformes prises en charge",
+        footerPrivacy: "Aucune donnée conservée, 100 % sûr et privé",
+        footerEngine: "Moteur local actif sur ce PC (yt-dlp et FFmpeg) avec mise à jour automatique en cas d'évolution des réseaux.",
+        modalTitle: "Support et Informations",
+        modalP1: "Traitement 100 % local sur votre PC (yt-dlp et FFmpeg) : aucun lien ni aucune vidéo ne transite par un serveur externe.",
+        modalP2: "Si une plateforme change de format, le moteur local se met à jour automatiquement.",
+        modalContactLabel: "Pour toute aide ou remarque, écrivez à",
+        modalClose: "Fermer",
+        errInvalid: "Veuillez saisir un lien valide.",
+        msgDownloading: "Téléchargement et conversion MP4 en cours, veuillez patienter...",
+        errDownload: "Erreur lors du téléchargement de la vidéo.",
+        msgDone: "Terminé ! Le fichier MP4 a été enregistré dans votre dossier Téléchargements.",
+        errConn: "Connexion au moteur local impossible. Vérifiez qu'avvia.bat est bien ouvert."
+      },
+      es: {
+        navHow: "Cómo funciona",
+        navSupport: "Soporte",
+        heroTitle: "Convierte cualquier vídeo social en MP4",
+        heroSubtitle: "Descarga tus vídeos favoritos de Instagram, TikTok, YouTube y otras plataformas en segundos, gratis y sin anuncios.",
+        placeholder: "Pega aquí el enlace del vídeo (ej. Instagram, TikTok, YouTube)...",
+        btnDownload: "Descargar MP4",
+        btnDownloading: "Descargando...",
+        howTitle: "Cómo funciona:",
+        step1Title: "Copia el enlace",
+        step1Desc: "Busca el vídeo en Instagram u otras redes sociales y copia su dirección (URL).",
+        step2Title: "Pega aquí",
+        step2Desc: "Introduce el enlace en la barra superior y pulsa el botón.",
+        step3Title: "Descarga",
+        step3Desc: "El vídeo se guardará directamente en tu carpeta Descargas como archivo .mp4 listo para usar.",
+        platformsAria: "Plataformas compatibles",
+        footerPrivacy: "Sin datos guardados, 100 % seguro y privado",
+        footerEngine: "Motor local activo en este PC (yt-dlp y FFmpeg) con actualización automática ante cambios de las redes.",
+        modalTitle: "Soporte e Información",
+        modalP1: "Procesamiento 100 % local en tu PC (yt-dlp y FFmpeg): ningún enlace ni vídeo sale hacia servidores externos.",
+        modalP2: "Si una plataforma cambia de formato, el motor local se actualiza automáticamente.",
+        modalContactLabel: "Para ayuda o reportes, escribe a",
+        modalClose: "Cerrar",
+        errInvalid: "Introduce un enlace válido.",
+        msgDownloading: "Descargando y procesando MP4, espera unos segundos...",
+        errDownload: "Error al descargar el vídeo.",
+        msgDone: "¡Listo! El archivo MP4 se ha guardado en tu carpeta Descargas.",
+        errConn: "No se pudo conectar con el motor local. Asegúrate de que avvia.bat esté abierto."
+      },
+      de: {
+        navHow: "So funktioniert's",
+        navSupport: "Support",
+        heroTitle: "Jedes Social-Video in MP4 umwandeln",
+        heroSubtitle: "Lade deine Videos von Instagram, TikTok, YouTube und weiteren Plattformen in Sekunden herunter, kostenlos und werbefrei.",
+        placeholder: "Videolink hier einfügen (z. B. Instagram, TikTok, YouTube)...",
+        btnDownload: "MP4 herunterladen",
+        btnDownloading: "Wird heruntergeladen...",
+        howTitle: "So funktioniert's:",
+        step1Title: "Link kopieren",
+        step1Desc: "Öffne das gewünschte Video auf Instagram oder anderen Plattformen und kopiere die URL.",
+        step2Title: "Hier einfügen",
+        step2Desc: "Füge den Link oben in das Feld ein und klicke auf die Schaltfläche.",
+        step3Title: "Herunterladen",
+        step3Desc: "Das Video wird direkt als fertige .mp4-Datei in deinem Download-Ordner gespeichert.",
+        platformsAria: "Unterstützte Plattformen",
+        footerPrivacy: "Keine Datenspeicherung, 100 % sicher und privat",
+        footerEngine: "Lokaler Motor auf diesem PC (yt-dlp und FFmpeg) mit automatischen Updates bei Plattform-Änderungen.",
+        modalTitle: "Support und Informationen",
+        modalP1: "100 % lokale Verarbeitung auf deinem PC (yt-dlp und FFmpeg): Keine Links oder Videos verlassen dein Gerät.",
+        modalP2: "Wenn eine Plattform ihr Format ändert, aktualisiert sich der lokale Motor automatisch.",
+        modalContactLabel: "Für Hilfe oder Hinweise schreibe an",
+        modalClose: "Schließen",
+        errInvalid: "Bitte gib einen gültigen Link ein.",
+        msgDownloading: "Download und MP4-Verarbeitung laufen, bitte kurz warten...",
+        errDownload: "Fehler beim Herunterladen des Videos.",
+        msgDone: "Fertig! Die MP4-Datei wurde in deinem Download-Ordner gespeichert.",
+        errConn: "Verbindung zum lokalen Motor fehlgeschlagen. Stelle sicher, dass avvia.bat läuft."
+      }
+    };
+
+    const rawLang = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+    const langCode = String(rawLang).toLowerCase().slice(0, 2);
+    const activeLang = I18N[langCode] ? langCode : "en";
+    const T = I18N[activeLang];
+
+    (function applyLocalization() {
+      document.documentElement.lang = activeLang;
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (T[key]) el.textContent = T[key];
+      });
+      const inputEl = document.getElementById("video-url");
+      if (inputEl) inputEl.placeholder = T.placeholder;
+      const platEl = document.getElementById("platforms-row");
+      if (platEl) platEl.setAttribute("aria-label", T.platformsAria);
+      const modalCloseX = document.getElementById("support-modal-x");
+      if (modalCloseX) modalCloseX.setAttribute("aria-label", T.modalClose);
+
+      const urlMap = {
+        it: "https://www.kasuality.com/",
+        en: "https://www.kasuality.com/en/",
+        fr: "https://www.kasuality.com/fr/",
+        es: "https://www.kasuality.com/es/",
+        de: "https://www.kasuality.com/de/"
+      };
+      const targetUrl = urlMap[activeLang] || urlMap.en;
+      document.querySelectorAll(".kasuality-brand-link").forEach((link) => {
+        link.href = targetUrl;
+      });
+    })();
+
+    (function setupNavInteractions() {
+      const navHow = document.getElementById("nav-how");
+      const howSection = document.getElementById("come-funziona");
+      if (navHow && howSection) {
+        navHow.addEventListener("click", (e) => {
+          e.preventDefault();
+          howSection.scrollIntoView({ behavior: "smooth", block: "center" });
+          howSection.classList.remove("how-highlight");
+          void howSection.offsetWidth;
+          howSection.classList.add("how-highlight");
+          setTimeout(() => howSection.classList.remove("how-highlight"), 1400);
+        });
+      }
+
+      const navSupport = document.getElementById("nav-support");
+      const modal = document.getElementById("support-modal");
+      const closeX = document.getElementById("support-modal-x");
+      const closeBtn = document.getElementById("support-modal-close");
+      if (navSupport && modal) {
+        const closeModal = () => modal.classList.remove("open");
+        navSupport.addEventListener("click", (e) => {
+          e.preventDefault();
+          modal.classList.add("open");
+        });
+        if (closeX) closeX.addEventListener("click", closeModal);
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) closeModal();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeModal();
+        });
+      }
+    })();
+
+    const form = document.getElementById("download-form");
+    const urlInput = document.getElementById("video-url");
+    const btn = document.getElementById("download-btn");
+    const statusEl = document.getElementById("status");
+
+    function setStatus(message, type) {
+      statusEl.textContent = message;
+      statusEl.className = "status" + (type ? " " + type : "");
+    }
+
+    function extractFilename(disposition) {
+      if (!disposition) return "video.mp4";
+      const utfMatch = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+      if (utfMatch && utfMatch[1]) {
+        return decodeURIComponent(utfMatch[1]);
+      }
+      const match = disposition.match(/filename="?([^"]+)"?/i);
+      return match && match[1] ? match[1] : "video.mp4";
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) {
+        setStatus(T.errInvalid, "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = T.btnDownloading;
+      setStatus(T.msgDownloading, "");
+
+      try {
+        const res = await fetch("/download", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!res.ok) {
+          let errMsg = T.errDownload;
+          try {
+            const data = await res.json();
+            if (data && data.error) errMsg = data.error;
+          } catch (_) {}
+          setStatus(errMsg, "error");
+          return;
+        }
+
+        const blob = await res.blob();
+        const filename = extractFilename(res.headers.get("Content-Disposition"));
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+
+        setStatus(T.msgDone, "ok");
+        urlInput.value = "";
+      } catch (err) {
+        setStatus(T.errConn, "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = T.btnDownload;
+      }
+    });
+  </script>
+</body>
+</html>
