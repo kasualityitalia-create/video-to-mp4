@@ -28,7 +28,7 @@ No ads, no pop-ups, no third-party servers, and no resolution caps.
 - **FFmpeg** installed and available on your system `PATH`
 - Python packages:
   ```bash
-  pip install flask yt-dlp
+  pip install -r requirements.txt
   ```
 
 ### 2. Run the App
@@ -51,3 +51,9 @@ No ads, no pop-ups, no third-party servers, and no resolution caps.
 ## Credits
 
 Built with care **by [Kasuality](https://www.kasuality.com/en/)** — perceptual color engineering (`OKLCH`, `APCA`, `K-UDA`) and developer tools.
+
+---
+
+## License
+
+Released under the [MIT License](LICENSE) — Copyright (c) 2026 [Kasuality](https://www.kasuality.com/en/).
